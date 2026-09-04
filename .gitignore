@@ -1,0 +1,7 @@
+node_modules/
+
+# Datos personales del registro: nunca se suben al repo.
+data/*.json
+data/*.json.tmp
+
+.DS_Store

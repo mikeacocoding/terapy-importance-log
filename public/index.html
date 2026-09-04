@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Registro diario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Karla:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<div class="page">
+
+  <header class="top">
+    <div class="titleblock">
+      <h1>Registro diario</h1>
+      <p>Por cada bloque de tiempo anota la actividad, cuánto la disfrutaste y qué tan importante era. Al final del día, el pensamiento o la emoción que más pesó.</p>
+    </div>
+    <button class="btn-add-day" id="btn-new-day" type="button">+ Nuevo día</button>
+  </header>
+
+  <hr class="rule" />
+
+  <div id="days-container"></div>
+
+  <div id="empty-state">
+    <p class="big">Todavía no hay días registrados.</p>
+    <p class="small">Usa «+ Nuevo día» para empezar con hoy.</p>
+  </div>
+
+  <footer class="foot">Los cambios se guardan automáticamente en <code>data/registro.json</code>.</footer>
+</div>
+
+<template id="tpl-day-card">
+  <div class="day-card">
+    <div class="day-head">
+      <div class="day-head-left">
+        <span class="day-date"></span>
+        <div class="day-stats">
+          <span class="stat-enjoy"><span class="stat-dot dot-warm"></span>—</span>
+          <span class="stat-importance"><span class="stat-dot dot-accent"></span>—</span>
+        </div>
+      </div>
+      <button class="btn-del-day" type="button" data-action="del-day">Eliminar día</button>
+    </div>
+    <div class="day-body">
+      <div class="entries-list"></div>
+      <button class="btn-add-entry" type="button" data-action="add-entry">+ Añadir actividad</button>
+      <div class="reflection">
+        <label>Pensamiento o emoción más fuerte del día</label>
+        <div class="reflection-text" contenteditable="plaintext-only" data-placeholder="Escribe aquí lo que más resonó hoy…"></div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-entry-item">
+  <div class="entry-item">
+
+    <div class="entry-view">
+      <span class="entry-view-time"></span>
+      <div class="entry-view-main">
+        <p class="entry-view-activity"></p>
+      </div>
+      <div class="entry-view-stat entry-stat-importance">
+        <span class="entry-view-stat-label label-accent">Importancia</span>
+        <span class="entry-view-stat-value"></span>
+        <div class="score-bar-track"><div class="score-bar-fill accent"></div></div>
+      </div>
+      <div class="entry-view-stat entry-stat-enjoy">
+        <span class="entry-view-stat-label label-warm">Disfrute</span>
+        <span class="entry-view-stat-value"></span>
+        <div class="score-bar-track"><div class="score-bar-fill warm"></div></div>
+      </div>
+      <div class="entry-view-actions">
+        <button class="btn-icon btn-edit-entry" type="button" data-action="edit-entry" aria-label="Editar actividad">✎</button>
+        <button class="btn-icon btn-del-entry" type="button" data-action="del-entry" aria-label="Eliminar actividad">✕</button>
+      </div>
+    </div>
+
+    <div class="entry-form">
+      <div class="entry-fields">
+        <div class="field-time-start">
+          <span class="field-label">Desde</span>
+          <div class="time-select-group">
+            <select class="f-start-time" aria-label="Hora de inicio">
+          <option value="12:00">12:00</option>
+          <option value="12:15">12:15</option>
+          <option value="12:30">12:30</option>
+          <option value="12:45">12:45</option>
+          <option value="01:00">01:00</option>
+          <option value="01:15">01:15</option>
+          <option value="01:30">01:30</option>
+          <option value="01:45">01:45</option>
+          <option value="02:00">02:00</option>
+          <option value="02:15">02:15</option>
+          <option value="02:30">02:30</option>
+          <option value="02:45">02:45</option>
+          <option value="03:00">03:00</option>
+          <option value="03:15">03:15</option>
+          <option value="03:30">03:30</option>
+          <option value="03:45">03:45</option>
+          <option value="04:00">04:00</option>
+          <option value="04:15">04:15</option>
+          <option value="04:30">04:30</option>
+          <option value="04:45">04:45</option>
+          <option value="05:00">05:00</option>
+          <option value="05:15">05:15</option>
+          <option value="05:30">05:30</option>
+          <option value="05:45">05:45</option>
+          <option value="06:00">06:00</option>
+          <option value="06:15">06:15</option>
+          <option value="06:30">06:30</option>
+          <option value="06:45">06:45</option>
+          <option value="07:00">07:00</option>
+          <option value="07:15">07:15</option>
+          <option value="07:30">07:30</option>
+          <option value="07:45">07:45</option>
+          <option value="08:00">08:00</option>
+          <option value="08:15">08:15</option>
+          <option value="08:30">08:30</option>
+          <option value="08:45">08:45</option>
+          <option value="09:00">09:00</option>
+          <option value="09:15">09:15</option>
+          <option value="09:30">09:30</option>
+          <option value="09:45">09:45</option>
+          <option value="10:00">10:00</option>
+          <option value="10:15">10:15</option>
+          <option value="10:30">10:30</option>
+          <option value="10:45">10:45</option>
+          <option value="11:00">11:00</option>
+          <option value="11:15">11:15</option>
+          <option value="11:30">11:30</option>
+          <option value="11:45">11:45</option>
+            </select>
+            <select class="f-start-period" aria-label="AM o PM de la hora de inicio">
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-time-end">
+          <span class="field-label">Hasta</span>
+          <div class="time-select-group">
+            <select class="f-end-time" aria-label="Hora de fin">
+          <option value="12:00">12:00</option>
+          <option value="12:15">12:15</option>
+          <option value="12:30">12:30</option>
+          <option value="12:45">12:45</option>
+          <option value="01:00">01:00</option>
+          <option value="01:15">01:15</option>
+          <option value="01:30">01:30</option>
+          <option value="01:45">01:45</option>
+          <option value="02:00">02:00</option>
+          <option value="02:15">02:15</option>
+          <option value="02:30">02:30</option>
+          <option value="02:45">02:45</option>
+          <option value="03:00">03:00</option>
+          <option value="03:15">03:15</option>
+          <option value="03:30">03:30</option>
+          <option value="03:45">03:45</option>
+          <option value="04:00">04:00</option>
+          <option value="04:15">04:15</option>
+          <option value="04:30">04:30</option>
+          <option value="04:45">04:45</option>
+          <option value="05:00">05:00</option>
+          <option value="05:15">05:15</option>
+          <option value="05:30">05:30</option>
+          <option value="05:45">05:45</option>
+          <option value="06:00">06:00</option>
+          <option value="06:15">06:15</option>
+          <option value="06:30">06:30</option>
+          <option value="06:45">06:45</option>
+          <option value="07:00">07:00</option>
+          <option value="07:15">07:15</option>
+          <option value="07:30">07:30</option>
+          <option value="07:45">07:45</option>
+          <option value="08:00">08:00</option>
+          <option value="08:15">08:15</option>
+          <option value="08:30">08:30</option>
+          <option value="08:45">08:45</option>
+          <option value="09:00">09:00</option>
+          <option value="09:15">09:15</option>
+          <option value="09:30">09:30</option>
+          <option value="09:45">09:45</option>
+          <option value="10:00">10:00</option>
+          <option value="10:15">10:15</option>
+          <option value="10:30">10:30</option>
+          <option value="10:45">10:45</option>
+          <option value="11:00">11:00</option>
+          <option value="11:15">11:15</option>
+          <option value="11:30">11:30</option>
+          <option value="11:45">11:45</option>
+            </select>
+            <select class="f-end-period" aria-label="AM o PM de la hora de fin">
+              <option value="AM">AM</option>
+              <option value="PM">PM</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-activity">
+          <span class="field-label">Actividad</span>
+          <textarea class="f-activity" rows="1" placeholder="¿Qué hiciste?" aria-label="Actividad"></textarea>
+        </div>
+        <div class="field-enjoy">
+          <span class="field-label">Disfrute</span>
+          <div class="score-wrap">
+            <input type="number" inputmode="numeric" class="f-enjoy" min="1" max="10" placeholder="1–10" aria-label="Disfrute, de 1 a 10" />
+            <div class="score-bar-track"><div class="score-bar-fill warm"></div></div>
+          </div>
+        </div>
+        <div class="field-importance">
+          <span class="field-label">Importa</span>
+          <div class="score-wrap">
+            <input type="number" inputmode="numeric" class="f-importance" min="1" max="10" placeholder="1–10" aria-label="Importancia, de 1 a 10" />
+            <div class="score-bar-track"><div class="score-bar-fill accent"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="entry-form-actions">
+        <button type="button" class="btn-cancel-entry" data-action="cancel-entry">Cancelar</button>
+        <button type="button" class="btn-save-entry" data-action="save-entry">Guardar actividad</button>
+      </div>
+    </div>
+
+  </div>
+</template>
+
+<script src="/app.js"></script>
+</body>
+</html>
