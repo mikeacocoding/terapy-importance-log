@@ -1,8 +1,7 @@
 const express = require('express');
 const path = require('path');
 const os = require('os');
-const { ensureData } = require('./src/db');
-const daysRouter = require('./src/routes/days');
+const { ensureData, readDoc, writeDoc } = require('./src/db');
 
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
@@ -10,7 +9,19 @@ const HOST = '0.0.0.0';
 const app = express();
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/api/days', daysRouter);
+
+app.get('/api/data', async (req, res) => {
+  res.json(await readDoc());
+});
+
+app.put('/api/data', async (req, res) => {
+  const doc = req.body;
+  if (!doc || !Array.isArray(doc.days)) {
+    return res.status(400).json({ error: 'documento inválido' });
+  }
+  await writeDoc(doc);
+  res.status(204).end();
+});
 
 function getLocalIPs() {
   const nets = os.networkInterfaces();

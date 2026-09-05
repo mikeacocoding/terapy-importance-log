@@ -1,65 +1,91 @@
-# Registro diario (activación conductual)
+# Registro diario
 
-App web local para llevar un registro diario de actividades: hora de inicio/fin,
-nombre de la actividad, disfrute (1-10), importancia (1-10) y una reflexión libre
-por día. Todo se guarda en `data/registro.json`, sin base de datos externa ni login.
+App para llevar un registro diario de actividades: hora de inicio/fin, nombre
+de la actividad, disfrute (1-10), importancia (1-10) y una reflexión libre por
+día. Un solo usuario, protegida por contraseña.
 
-## Instalación
+Publicada como app estática en GitHub Pages:
+`https://mikeacocoding.github.io/terapy-importance-log/`
+
+## Dónde viven los datos
+
+- **`localStorage`** del navegador es la fuente principal — todo funciona sin
+  conexión.
+- Si conectas un **Gist privado de GitHub** (con un token personal, scope
+  `gist`) desde Ajustes, los datos sincronizan entre dispositivos.
+- Una contraseña protege ese token (cifrado con AES-GCM) y actúa como pantalla
+  de bloqueo. No cifra los registros ni el código de la app — el repo es
+  público.
+
+## Uso en GitHub Pages
+
+Abre la URL publicada. La primera vez, crea una contraseña — no hay forma de
+recuperarla si la olvidas. Desde Ajustes puedes conectar un Gist para
+sincronizar entre el celular y la laptop.
+
+## Modo local (opcional)
+
+El servidor Express sirve la misma app por la WiFi de casa y guarda un
+respaldo en `data/registro.json`.
 
 ```bash
 npm install
-```
-
-## Uso
-
-```bash
 npm run dev
 ```
 
-Esto levanta el servidor en `http://localhost:3000` y lo deja escuchando en
-todas las interfaces de red (`0.0.0.0`). Al arrancar, la consola muestra algo así:
+Levanta el servidor en `http://localhost:3000`, accesible también desde el
+celular en la misma red (la consola imprime la IP). Si el Gist está
+conectado, manda el Gist y el archivo local sólo actúa de espejo de respaldo.
+Si no hay Gist configurado, el archivo local es la fuente de datos al
+arrancar.
 
+## Migrar datos viejos
+
+Si tienes un `data/bk.json` con el formato antiguo (con `id`), este comando lo
+convierte al formato nuevo:
+
+```bash
+npm run migrate-bk
 ```
-Servidor corriendo en http://localhost:3000
-Accesible desde el celular en la misma red WiFi:
-  http://192.168.1.23:3000
-```
 
-`npm run dev` reinicia el servidor automáticamente al guardar cambios en el código
-(usa `node --watch`). Para producción, usa `npm start`.
-
-## Acceder desde el celular
-
-1. Asegúrate de que el celular esté conectado a la **misma red WiFi** que la
-   computadora donde corre el servidor.
-2. Abre en el navegador del celular la URL que aparece en la consola bajo
-   "Accesible desde el celular en la misma red WiFi" (por ejemplo
-   `http://192.168.1.23:3000`).
-3. Si no carga, revisa que el firewall de la computadora no esté bloqueando el
-   puerto 3000, y que ambos dispositivos estén en la misma subred.
-
-## Datos
-
-- El archivo `data/registro.json` se crea automáticamente la primera vez que
-  arranca el servidor, con la estructura `{ "days": [] }`.
-- Cada guardado se escribe primero en un archivo temporal y luego se renombra
-  sobre el archivo final, para evitar corromper el JSON si el proceso se
-  interrumpe a mitad de una escritura.
-- No hay base de datos externa ni sincronización en la nube: todo vive en ese
-  archivo, dentro de este mismo directorio.
+Genera `data/registro-export.json`, que se importa desde Ajustes → Importar
+JSON.
 
 ## Estructura del proyecto
 
 ```
 importance-log/
-├── server.js              # arranca Express, escucha en 0.0.0.0
-├── src/
-│   ├── db.js               # lectura/escritura atómica de data/registro.json
-│   └── routes/days.js      # endpoints /api/days...
-├── data/
-│   └── registro.json       # se crea automáticamente
-└── public/
-    ├── index.html
-    ├── styles.css
-    └── app.js
+├── public/                 # esto es lo que publica GitHub Pages
+│   ├── index.html
+│   ├── styles.css
+│   ├── app.js               # arranque y router
+│   ├── js/
+│   │   ├── store.js         # estado, localStorage, invariantes del modelo
+│   │   ├── crypto.js        # PBKDF2 + AES-GCM
+│   │   ├── gist.js          # cliente de la API de Gists
+│   │   ├── local-server.js  # espejo con el servidor local (modo LAN)
+│   │   ├── time.js          # formato 12 h, duraciones
+│   │   ├── dom.js           # helpers mínimos
+│   │   └── views/           # lock, day, entry-form, calendar, settings
+│   ├── manifest.webmanifest
+│   ├── sw.js
+│   └── icons/
+├── server.js                # modo local: sirve public/ + /api/data
+├── src/db.js                # lectura/escritura atómica de data/registro.json
+├── scripts/migrate-bk.mjs   # convierte data/bk.json al formato nuevo
+├── .github/workflows/pages.yml
+└── design/                  # mockups de referencia visual, no se despliegan
 ```
+
+## Despliegue
+
+En Settings → Pages del repo, configura **Source: GitHub Actions**. El
+workflow en `.github/workflows/pages.yml` publica `public/` en cada push a
+`main`.
+
+## Datos
+
+- `data/*.json` nunca se commitea (está en `.gitignore`).
+- Cada escritura del servidor local se hace primero en un archivo temporal y
+  luego se renombra sobre el final, para no corromper el JSON si el proceso se
+  interrumpe a mitad de una escritura.

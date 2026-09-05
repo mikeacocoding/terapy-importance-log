@@ -5,3 +5,6 @@ data/*.json
 data/*.json.tmp
 
 .DS_Store
+
+# Mockups y canvas de diseño: material de trabajo, no del proyecto.
+design/
