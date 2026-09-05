@@ -35,8 +35,13 @@ export function render(root, ctx) {
   const date = ctx.date;
   let unsubStore = null;
   let unsubGist = null;
+  let reflectionTextarea = null;
 
   function draw() {
+    // Mientras se escribe en la reflexión, no redibujar: destruiría el
+    // <textarea> enfocado y en móvil eso cierra el teclado.
+    if (reflectionTextarea && document.activeElement === reflectionTextarea) return;
+
     const day = store.getDay(date) ?? { date, reflection: '', entries: [] };
     const isToday = date === todayLocal();
 
@@ -200,10 +205,19 @@ export function render(root, ctx) {
       rows: '2',
     });
     reflectionText.value = day.reflection || '';
+    reflectionTextarea = reflectionText;
     let debounceTimer = null;
     reflectionText.addEventListener('input', () => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => store.setReflection(date, reflectionText.value), 800);
+    });
+    reflectionText.addEventListener('blur', () => {
+      // Al perder el foco, si quedó algo sin guardar por el debounce, se
+      // dispara ya (y con eso vuelve a habilitarse el redibujado normal).
+      clearTimeout(debounceTimer);
+      if (reflectionText.value !== (store.getDay(date)?.reflection ?? '')) {
+        store.setReflection(date, reflectionText.value);
+      }
     });
 
     const reflectionBlock = el('div', { class: 'reflection-block' }, [
