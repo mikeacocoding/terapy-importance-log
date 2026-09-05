@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'rd-v1';
+const CACHE_VERSION = 'rd-v2';
 
 const APP_SHELL = [
   './',
